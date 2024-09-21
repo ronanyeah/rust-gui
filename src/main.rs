@@ -1,45 +1,45 @@
-use iced::{widget, Application, Command};
+use iced::{widget, Subscription, Task};
 
-struct Counter {
+struct State {
     value: i32,
 }
 
 #[derive(Debug, Clone)]
 enum Message {
     Increment,
-}
-
-impl Application for Counter {
-    type Executor = iced::executor::Default;
-    type Message = Message;
-    type Flags = ();
-    type Theme = iced::Theme;
-    fn new(_flags: ()) -> (Counter, Command<Message>) {
-        let init_state = Counter { value: 0 };
-        (init_state, Command::none())
-    }
-    fn title(&self) -> String {
-        String::from("Rust GUI")
-    }
-    fn update(&mut self, message: Message) -> Command<Message> {
-        match message {
-            Message::Increment => {
-                self.value += 1;
-                Command::none()
-            }
-        }
-    }
-    fn view(self: &Counter) -> iced::Element<Message> {
-        widget::column![
-            widget::text(self.value).size(50),
-            widget::button("+").on_press(Message::Increment).padding(10),
-        ]
-        .spacing(20)
-        .padding(30)
-        .into()
-    }
+    Overwrite(i32),
 }
 
 fn main() -> iced::Result {
-    Counter::run(iced::Settings::default())
+    let init_state = State { value: 0 };
+    iced::application("Rust GUI", update, view)
+        .subscription(subscription)
+        .run_with(|| (init_state, Task::none()))
+}
+
+fn view(state: &State) -> iced::Element<Message> {
+    widget::column![
+        widget::text(state.value).size(50),
+        widget::button("+").on_press(Message::Increment).padding(10),
+    ]
+    .spacing(20)
+    .padding(30)
+    .into()
+}
+
+fn update(state: &mut State, message: Message) -> Task<Message> {
+    match message {
+        Message::Increment => {
+            state.value += 1;
+            Task::none()
+        }
+        Message::Overwrite(n) => {
+            state.value = n;
+            Task::none()
+        }
+    }
+}
+
+fn subscription(_state: &State) -> Subscription<Message> {
+    iced::window::resize_events().map(|(_id, size)| Message::Overwrite(size.width as i32))
 }
