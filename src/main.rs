@@ -1,7 +1,8 @@
-use iced::{widget, Subscription, Task};
+use iced::{Subscription, Task, widget};
 
 struct State {
     value: i32,
+    width: i32,
 }
 
 #[derive(Debug, Clone)]
@@ -11,16 +12,21 @@ enum Message {
 }
 
 fn main() -> iced::Result {
-    let init_state = State { value: 0 };
-    iced::application("Rust GUI", update, view)
+    iced::application(|| State { value: 0, width: 0 }, update, view)
         .subscription(subscription)
-        .run_with(|| (init_state, Task::none()))
+        .title("Rust GUI")
+        .run()
 }
 
-fn view(state: &State) -> iced::Element<Message> {
+fn view(state: &State) -> iced::Element<'_, Message> {
     widget::column![
         widget::text(state.value).size(50),
         widget::button("+").on_press(Message::Increment).padding(10),
+        widget::row![
+            widget::text("width:").size(20),
+            widget::text(state.width).size(20)
+        ]
+        .spacing(20)
     ]
     .spacing(20)
     .padding(30)
@@ -34,7 +40,7 @@ fn update(state: &mut State, message: Message) -> Task<Message> {
             Task::none()
         }
         Message::Overwrite(n) => {
-            state.value = n;
+            state.width = n;
             Task::none()
         }
     }
